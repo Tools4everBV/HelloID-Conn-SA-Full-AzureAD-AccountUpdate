@@ -1,0 +1,50 @@
+[
+    {
+        "name":  "businessPhones",
+        "value":  "{{form.businessPhones}}"
+    },
+    {
+        "name":  "company",
+        "value":  "{{form.company}}"
+    },
+    {
+        "name":  "department",
+        "value":  "{{form.department}}"
+    },
+    {
+        "name":  "displayName",
+        "value":  "{{form.displayName}}"
+    },
+    {
+        "name":  "givenName",
+        "value":  "{{form.givenName}}"
+    },
+    {
+        "name":  "mail",
+        "value":  "{{form.mail}}"
+    },
+    {
+        "name":  "mobileNumber",
+        "value":  "{{form.mobileNumber}}"
+    },
+    {
+        "name":  "mobilePhone",
+        "value":  "{{form.mobilePhone}}"
+    },
+    {
+        "name":  "surname",
+        "value":  "{{form.surname}}"
+    },
+    {
+        "name":  "telephoneNumber",
+        "value":  "{{form.telephoneNumber}}"
+    },
+    {
+        "name":  "title",
+        "value":  "{{form.title}}"
+    },
+    {
+        "name":  "userPrincipalName",
+        "value":  "{{form.gridUsers.UserPrincipalName}}"
+    }
+]

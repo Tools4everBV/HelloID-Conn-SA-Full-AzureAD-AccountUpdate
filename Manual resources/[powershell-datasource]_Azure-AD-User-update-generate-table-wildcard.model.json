@@ -1,0 +1,42 @@
+[
+    {
+        "key":  "company",
+        "type":  0
+    },
+    {
+        "key":  "displayName",
+        "type":  0
+    },
+    {
+        "key":  "mobilePhone",
+        "type":  0
+    },
+    {
+        "key":  "department",
+        "type":  0
+    },
+    {
+        "key":  "title",
+        "type":  0
+    },
+    {
+        "key":  "businessPhones",
+        "type":  0
+    },
+    {
+        "key":  "userPrincipalName",
+        "type":  0
+    },
+    {
+        "key":  "mail",
+        "type":  0
+    },
+    {
+        "key":  "givenName",
+        "type":  0
+    },
+    {
+        "key":  "surname",
+        "type":  0
+    }
+]
