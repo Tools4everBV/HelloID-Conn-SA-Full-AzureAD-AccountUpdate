@@ -1,43 +1,38 @@
 # Set TLS to accept TLS, TLS 1.1 and TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12
 
+#Mapping variables from form
+$displayName = $form.displayName;
+$userPrincipalName = $form.gridUsers.UserPrincipalName;
+$mailNickname = $form.mail.split("@")[0];
+$mail = $form.mail
+$givenName = $form.givenName
+$surname = $form.surname
+$jobTitle = $form.title
+$department = $form.department
+$companyName = $form.company
+$mobilePhone = $form.mobilePhone
+$businessPhones = $form.businessPhones
+
 #Change mapping here
 $account = [PSCustomObject]@{
-    userType = $employeeType;
     displayName = $displayName;
-    userPrincipalName = $userPrincipalName;
-    mailNickname = $mail.split("@")[0];
+    userPrincipalName = $UserPrincipalName;
+    mailNickname = $mailNickname;
     mail = $mail
-    #showInAddressList = $true
-
-    accountEnabled = $true;
-    passwordProfile = @{
-        password = $password
-        forceChangePasswordNextSignIn = $false
-    }
 
     givenName = $givenName
     surname = $surname
 
-    jobTitle = $title
+    jobTitle = $jobTitle
     department = $department
-    officeLocation = $office
-    companyName = $company
+    companyName = $companyName
 
     mobilePhone = $mobilePhone
     businessPhones = @($businessPhones)
-    faxNumber = $faxNumber
-
-    employeeId = $employeeId
 
     UsageLocation       =   "NL"
     PreferredLanguage   =   "NL"
-
-    #Country             =   "Netherlands"
-    #State               =   "Utrecht"
-    #City                =   "Baarn"
-    #StreetAddress       =   "Amalialaan 126C"
-    #PostalCode          =   "3743 KJ"
 }
 
 # Filter out empty properties
@@ -54,7 +49,7 @@ $account = [PSCustomObject]$account
 
 
 try{
-    Hid-Write-Status -Message "Generating Microsoft Graph API Access Token.." -Event Information
+    Write-Information "Generating Microsoft Graph API Access Token.."
 
     $baseUri = "https://login.microsoftonline.com/"
     $authUri = $baseUri + "$AADTenantID/oauth2/token"
@@ -69,7 +64,7 @@ try{
     $Response = Invoke-RestMethod -Method POST -Uri $authUri -Body $body -ContentType 'application/x-www-form-urlencoded'
     $accessToken = $Response.access_token;
 
-    Hid-Write-Status -Message "Updating AzureAD user [$($account.userPrincipalName)].." -Event Information
+    Write-Information "Updating AzureAD user [$($account.userPrincipalName)].."
  
     #Add the authorization header to the request
     $authorization = @{
@@ -84,9 +79,30 @@ try{
  
     $response = Invoke-RestMethod -Uri $updateUri -Method PATCH -Headers $authorization -Body $body -Verbose:$false
 
-    Hid-Write-Status -Message "AzureAD user [$($account.userPrincipalName)] updated successfully" -Event Success
-    HID-Write-Summary -Message "AzureAD user [$($account.userPrincipalName)] updated successfully" -Event Success
+    Write-Information "AzureAD user [$($account.userPrincipalName)] updated successfully"
+
+    $Log = @{
+      Action            = "UpdateAccount" # optional. ENUM (undefined = default) 
+      System            = "AzureActiveDirectory" # optional (free format text) 
+      Message           = "Updated account with username $($account.userPrincipalName)" # required (free format text) 
+      IsError           = $false # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) 
+      TargetDisplayName = $form.displayName # optional (free format text) 
+      TargetIdentifier  = $account.userPrincipalName # optional (free format text) 
+  }
+  #send result back  
+  Write-Information -Tags "Audit" -MessageData $log
+
 }catch{
-    HID-Write-Status -Message "Error updating AzureAD user [$($account.userPrincipalName)]. Error: $_" -Event Error
-    HID-Write-Summary -Message "Error updating AzureAD user [$($account.userPrincipalName)]" -Event Failed
+    Write-Error "Error updating AzureAD user [$($account.userPrincipalName)]. Error: $_"
+    Write-Information "Error updating AzureAD user [$($account.userPrincipalName)]" 
+
+    $Log = @{
+      Action            = "UpdateAccount" # optional. ENUM (undefined = default) 
+      System            = "AzureActiveDirectory" # optional (free format text) 
+      Message           = "Error updateing account with username $($account.userPrincipalName). Error: $($_.Exception.Message)" # required (free format text) 
+      IsError           = $true # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) 
+      TargetDisplayName = $form.displayName # optional (free format text)
+  }
+  #send result back  
+  Write-Information -Tags "Audit" -MessageData $log
 }

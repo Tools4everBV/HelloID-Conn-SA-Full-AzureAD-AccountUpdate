@@ -1,50 +1,50 @@
 [
     {
-        "name":  "businessPhones",
-        "value":  "{{form.businessPhones}}"
-    },
-    {
-        "name":  "company",
-        "value":  "{{form.company}}"
-    },
-    {
-        "name":  "department",
-        "value":  "{{form.department}}"
-    },
-    {
-        "name":  "displayName",
-        "value":  "{{form.displayName}}"
+        "name":  "title",
+        "value":  "{{form.title}}"
     },
     {
         "name":  "givenName",
         "value":  "{{form.givenName}}"
     },
     {
-        "name":  "mail",
-        "value":  "{{form.mail}}"
-    },
-    {
-        "name":  "mobileNumber",
-        "value":  "{{form.mobileNumber}}"
+        "name":  "userPrincipalName",
+        "value":  "{{form.gridUsers.UserPrincipalName}}"
     },
     {
         "name":  "mobilePhone",
         "value":  "{{form.mobilePhone}}"
     },
     {
+        "name":  "department",
+        "value":  "{{form.department}}"
+    },
+    {
         "name":  "surname",
         "value":  "{{form.surname}}"
+    },
+    {
+        "name":  "company",
+        "value":  "{{form.company}}"
     },
     {
         "name":  "telephoneNumber",
         "value":  "{{form.telephoneNumber}}"
     },
     {
-        "name":  "title",
-        "value":  "{{form.title}}"
+        "name":  "mobileNumber",
+        "value":  "{{form.mobileNumber}}"
     },
     {
-        "name":  "userPrincipalName",
-        "value":  "{{form.gridUsers.UserPrincipalName}}"
+        "name":  "businessPhones",
+        "value":  "{{form.businessPhones}}"
+    },
+    {
+        "name":  "displayName",
+        "value":  "{{form.displayName}}"
+    },
+    {
+        "name":  "mail",
+        "value":  "{{form.mail}}"
     }
 ]
