@@ -8,6 +8,7 @@ This HelloID Service Automation Delegated Form can update Azure users. The follo
 ## Versioning
 | Version | Description | Date |
 | - | - | - |
+| 1.0.2   | Added version number and updated code for SA-agent and auditlogging | 2022/08/16  |
 | 1.0.1   | Added version number and updated all-in-one script | 2021/11/08  |
 | 1.0.0   | Initial release | 2021/09/02  |
 
@@ -108,7 +109,7 @@ This Delegated Form uses the following resources in order to run
 
 ### Powershell data source 'Azure-AD-User-update-generate-table-attributes-basic'
 
-### Delegated form task 'azure-ad-account-update-details'
+### Delegated form task 'Azure AD Account - Update details'
 
 ## Getting help
 _If you need help, feel free to ask questions on our [forum](https://forum.helloid.com/forum/helloid-connectors/service-automation/216-helloid-sa-azure-ad-update-user)_

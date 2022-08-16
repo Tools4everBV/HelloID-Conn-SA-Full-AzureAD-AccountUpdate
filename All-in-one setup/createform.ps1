@@ -20,12 +20,17 @@ $globalHelloIDVariables = [System.Collections.Generic.List[object]]@();
 $tmpName = @'
 AADAppId
 '@ 
-$tmpValue = @'
-430009f2-92ac-4e8b-a877-57e2d5ad01a0gtds
-'@ 
+$tmpValue = ""
 $globalHelloIDVariables.Add([PSCustomObject]@{name = $tmpName; value = $tmpValue; secret = "False"});
 
-#Global variable #2 >> companyName
+#Global variable #2 >> AADAppSecret
+$tmpName = @'
+AADAppSecret
+'@ 
+$tmpValue = "" 
+$globalHelloIDVariables.Add([PSCustomObject]@{name = $tmpName; value = $tmpValue; secret = "False"});
+
+#Global variable #3 >> companyName
 $tmpName = @'
 companyName
 '@ 
@@ -34,22 +39,11 @@ $tmpValue = @'
 '@ 
 $globalHelloIDVariables.Add([PSCustomObject]@{name = $tmpName; value = $tmpValue; secret = "False"});
 
-#Global variable #3 >> AADtenantID
+#Global variable #4 >> AADtenantID
 $tmpName = @'
 AADtenantID
 '@ 
-$tmpValue = @'
-661b4604-5b86-4336-aaae-00550f991c6bhfdr
-'@ 
-$globalHelloIDVariables.Add([PSCustomObject]@{name = $tmpName; value = $tmpValue; secret = "False"});
-
-#Global variable #4 >> AADAppSecret
-$tmpName = @'
-AADAppSecret
-'@ 
-$tmpValue = @'
-hRL8Q~Q1bsHzQVaKwulNq5fIh~RGvM.xmgxPZcCs
-'@ 
+$tmpValue = "" 
 $globalHelloIDVariables.Add([PSCustomObject]@{name = $tmpName; value = $tmpValue; secret = "False"});
 
 
@@ -580,134 +574,10 @@ $delegatedFormRef = [PSCustomObject]@{guid = $null; created = $null}
 $delegatedFormName = @'
 Azure AD Account - Update details
 '@
-$tmpTask = $null 
+$tmpTask = @'
+{"name":"Azure AD Account - Update details","script":"# Set TLS to accept TLS, TLS 1.1 and TLS 1.2\r\n[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12\r\n\r\n#Mapping variables from form\r\n$displayName = $form.displayName;\r\n$userPrincipalName = $form.gridUsers.UserPrincipalName;\r\n$mailNickname = $form.mail.split(\"@\")[0];\r\n$mail = $form.mail\r\n$givenName = $form.givenName\r\n$surname = $form.surname\r\n$jobTitle = $form.title\r\n$department = $form.department\r\n$companyName = $form.company\r\n$mobilePhone = $form.mobilePhone\r\n$businessPhones = $form.businessPhones\r\n\r\n#Change mapping here\r\n$account = [PSCustomObject]@{\r\n    displayName = $displayName;\r\n    userPrincipalName = $UserPrincipalName;\r\n    mailNickname = $mailNickname;\r\n    mail = $mail\r\n\r\n    givenName = $givenName\r\n    surname = $surname\r\n\r\n    jobTitle = $jobTitle\r\n    department = $department\r\n    companyName = $companyName\r\n\r\n    mobilePhone = $mobilePhone\r\n    businessPhones = @($businessPhones)\r\n\r\n    UsageLocation       =   \"NL\"\r\n    PreferredLanguage   =   \"NL\"\r\n}\r\n\r\n# Filter out empty properties\r\n$accountTemp = $account\r\n\r\n$account = @{}\r\nforeach($property in $accountTemp.PSObject.Properties){\r\n    if(![string]::IsNullOrEmpty($property.Value)){\r\n        $null = $account.Add($property.Name, $property.Value)\r\n    }\r\n}\r\n\r\n$account = [PSCustomObject]$account\r\n\r\n\r\ntry{\r\n    Write-Information \"Generating Microsoft Graph API Access Token..\"\r\n\r\n    $baseUri = \"https://login.microsoftonline.com/\"\r\n    $authUri = $baseUri + \"$AADTenantID/oauth2/token\"\r\n\r\n    $body = @{\r\n        grant_type      = \"client_credentials\"\r\n        client_id       = \"$AADAppId\"\r\n        client_secret   = \"$AADAppSecret\"\r\n        resource        = \"https://graph.microsoft.com\"\r\n    }\r\n \r\n    $Response = Invoke-RestMethod -Method POST -Uri $authUri -Body $body -ContentType \u0027application/x-www-form-urlencoded\u0027\r\n    $accessToken = $Response.access_token;\r\n\r\n    Write-Information \"Updating AzureAD user [$($account.userPrincipalName)]..\"\r\n \r\n    #Add the authorization header to the request\r\n    $authorization = @{\r\n        Authorization = \"Bearer $accesstoken\";\r\n        \u0027Content-Type\u0027 = \"application/json\";\r\n        Accept = \"application/json\";\r\n    }\r\n \r\n    $baseUpdateUri = \"https://graph.microsoft.com/\"\r\n    $updateUri = $baseUpdateUri + \"v1.0/users/$($account.userPrincipalName)\"\r\n    $body = $account | ConvertTo-Json -Depth 10\r\n \r\n    $response = Invoke-RestMethod -Uri $updateUri -Method PATCH -Headers $authorization -Body $body -Verbose:$false\r\n\r\n    Write-Information \"AzureAD user [$($account.userPrincipalName)] updated successfully\"\r\n\r\n    $Log = @{\r\n      Action            = \"UpdateAccount\" # optional. ENUM (undefined = default) \r\n      System            = \"AzureActiveDirectory\" # optional (free format text) \r\n      Message           = \"Updated account with username $($account.userPrincipalName)\" # required (free format text) \r\n      IsError           = $false # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) \r\n      TargetDisplayName = $displayName # optional (free format text) \r\n      TargetIdentifier  = $($account.userPrincipalName) # optional (free format text) \r\n  }\r\n  #send result back  \r\n  Write-Information -Tags \"Audit\" -MessageData $log\r\n\r\n}catch{\r\n    Write-Error \"Error updating AzureAD user [$($account.userPrincipalName)]. Error: $_\"\r\n    Write-Information \"Error updating AzureAD user [$($account.userPrincipalName)]\" \r\n\r\n    $Log = @{\r\n      Action            = \"UpdateAccount\" # optional. ENUM (undefined = default) \r\n      System            = \"AzureActiveDirectory\" # optional (free format text) \r\n      Message           = \"Error updateing account with username $($account.userPrincipalName). Error: $($_.Exception.Message)\" # required (free format text) \r\n      IsError           = $true # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) \r\n      TargetDisplayName = $displayName # optional (free format text)\r\n      TargetIdentifier  = $($account.userPrincipalName) # optional (free format text) \r\n  }\r\n  #send result back  \r\n  Write-Information -Tags \"Audit\" -MessageData $log\r\n}","runInCloud":false}
+'@ 
 
 Invoke-HelloIDDelegatedForm -DelegatedFormName $delegatedFormName -DynamicFormGuid $dynamicFormGuid -AccessGroups $delegatedFormAccessGroupGuids -Categories $delegatedFormCategoryGuids -UseFaIcon "True" -FaIcon "fa fa-pencil" -task $tmpTask -returnObject ([Ref]$delegatedFormRef) 
 <# End: Delegated Form #>
 
-<# Begin: Delegated Form Automation Task #>
-if($delegatedFormRef.created -eq $true) { 
-	$tmpScript = @'
-# Set TLS to accept TLS, TLS 1.1 and TLS 1.2
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12
-
-#Mapping variables from form
-$displayName = $form.displayName;
-$userPrincipalName = $form.gridUsers.UserPrincipalName;
-$mailNickname = $form.mail.split("@")[0];
-$mail = $form.mail
-$givenName = $form.givenName
-$surname = $form.surname
-$jobTitle = $form.title
-$department = $form.department
-$companyName = $form.company
-$mobilePhone = $form.mobilePhone
-$businessPhones = $form.businessPhones
-
-#Change mapping here
-$account = [PSCustomObject]@{
-    displayName = $displayName;
-    userPrincipalName = $UserPrincipalName;
-    mailNickname = $mailNickname;
-    mail = $mail
-
-    givenName = $givenName
-    surname = $surname
-
-    jobTitle = $jobTitle
-    department = $department
-    companyName = $companyName
-
-    mobilePhone = $mobilePhone
-    businessPhones = @($businessPhones)
-
-    UsageLocation       =   "NL"
-    PreferredLanguage   =   "NL"
-}
-
-# Filter out empty properties
-$accountTemp = $account
-
-$account = @{}
-foreach($property in $accountTemp.PSObject.Properties){
-    if(![string]::IsNullOrEmpty($property.Value)){
-        $null = $account.Add($property.Name, $property.Value)
-    }
-}
-
-$account = [PSCustomObject]$account
-
-
-try{
-    Write-Information "Generating Microsoft Graph API Access Token.."
-
-    $baseUri = "https://login.microsoftonline.com/"
-    $authUri = $baseUri + "$AADTenantID/oauth2/token"
-
-    $body = @{
-        grant_type      = "client_credentials"
-        client_id       = "$AADAppId"
-        client_secret   = "$AADAppSecret"
-        resource        = "https://graph.microsoft.com"
-    }
- 
-    $Response = Invoke-RestMethod -Method POST -Uri $authUri -Body $body -ContentType 'application/x-www-form-urlencoded'
-    $accessToken = $Response.access_token;
-
-    Write-Information "Updating AzureAD user [$($account.userPrincipalName)].."
- 
-    #Add the authorization header to the request
-    $authorization = @{
-        Authorization = "Bearer $accesstoken";
-        'Content-Type' = "application/json";
-        Accept = "application/json";
-    }
- 
-    $baseUpdateUri = "https://graph.microsoft.com/"
-    $updateUri = $baseUpdateUri + "v1.0/users/$($account.userPrincipalName)"
-    $body = $account | ConvertTo-Json -Depth 10
- 
-    $response = Invoke-RestMethod -Uri $updateUri -Method PATCH -Headers $authorization -Body $body -Verbose:$false
-
-    Write-Information "AzureAD user [$($account.userPrincipalName)] updated successfully"
-
-    $Log = @{
-      Action            = "UpdateAccount" # optional. ENUM (undefined = default) 
-      System            = "AzureActiveDirectory" # optional (free format text) 
-      Message           = "Updated account with username $($account.userPrincipalName)" # required (free format text) 
-      IsError           = $false # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) 
-      TargetDisplayName = $form.displayName # optional (free format text) 
-      TargetIdentifier  = $account.userPrincipalName # optional (free format text) 
-  }
-  #send result back  
-  Write-Information -Tags "Audit" -MessageData $log
-
-}catch{
-    Write-Error "Error updating AzureAD user [$($account.userPrincipalName)]. Error: $_"
-    Write-Information "Error updating AzureAD user [$($account.userPrincipalName)]" 
-
-    $Log = @{
-      Action            = "UpdateAccount" # optional. ENUM (undefined = default) 
-      System            = "AzureActiveDirectory" # optional (free format text) 
-      Message           = "Error updateing account with username $($account.userPrincipalName). Error: $($_.Exception.Message)" # required (free format text) 
-      IsError           = $true # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) 
-      TargetDisplayName = $form.displayName # optional (free format text)
-  }
-  #send result back  
-  Write-Information -Tags "Audit" -MessageData $log
-}
-'@; 
-
-	$tmpVariables = @'
-[{"name":"title","value":"{{form.title}}","secret":false,"typeConstraint":"string"},{"name":"givenName","value":"{{form.givenName}}","secret":false,"typeConstraint":"string"},{"name":"userPrincipalName","value":"{{form.gridUsers.UserPrincipalName}}","secret":false,"typeConstraint":"string"},{"name":"mobilePhone","value":"{{form.mobilePhone}}","secret":false,"typeConstraint":"string"},{"name":"department","value":"{{form.department}}","secret":false,"typeConstraint":"string"},{"name":"surname","value":"{{form.surname}}","secret":false,"typeConstraint":"string"},{"name":"company","value":"{{form.company}}","secret":false,"typeConstraint":"string"},{"name":"telephoneNumber","value":"{{form.telephoneNumber}}","secret":false,"typeConstraint":"string"},{"name":"mobileNumber","value":"{{form.mobileNumber}}","secret":false,"typeConstraint":"string"},{"name":"businessPhones","value":"{{form.businessPhones}}","secret":false,"typeConstraint":"string"},{"name":"displayName","value":"{{form.displayName}}","secret":false,"typeConstraint":"string"},{"name":"mail","value":"{{form.mail}}","secret":false,"typeConstraint":"string"}]
-'@ 
-
-	$delegatedFormAutomationTaskGUID = [PSCustomObject]@{} 
-	$delegatedFormAutomationTaskName = @'
-azure-ad-account-update-details
-'@
-	Invoke-HelloIDAutomationTask -TaskName $delegatedFormAutomationTaskName -UseTemplate "False" -AutomationContainer "8" -Variables $tmpVariables -PowershellScript $tmpScript -ObjectGuid $delegatedFormRef.guid -ForceCreateTask $true -returnObject ([Ref]$delegatedFormAutomationTaskGUID) 
-} else {
-	Write-Warning "Delegated form '$delegatedFormName' already exists. Nothing to do with the Delegated Form automation task..." 
-}
-<# End: Delegated Form Automation Task #>

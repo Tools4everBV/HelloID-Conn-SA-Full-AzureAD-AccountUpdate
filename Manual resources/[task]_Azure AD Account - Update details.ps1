@@ -86,8 +86,8 @@ try{
       System            = "AzureActiveDirectory" # optional (free format text) 
       Message           = "Updated account with username $($account.userPrincipalName)" # required (free format text) 
       IsError           = $false # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) 
-      TargetDisplayName = $form.displayName # optional (free format text) 
-      TargetIdentifier  = $account.userPrincipalName # optional (free format text) 
+      TargetDisplayName = $displayName # optional (free format text) 
+      TargetIdentifier  = $($account.userPrincipalName) # optional (free format text) 
   }
   #send result back  
   Write-Information -Tags "Audit" -MessageData $log
@@ -101,7 +101,8 @@ try{
       System            = "AzureActiveDirectory" # optional (free format text) 
       Message           = "Error updateing account with username $($account.userPrincipalName). Error: $($_.Exception.Message)" # required (free format text) 
       IsError           = $true # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) 
-      TargetDisplayName = $form.displayName # optional (free format text)
+      TargetDisplayName = $displayName # optional (free format text)
+      TargetIdentifier  = $($account.userPrincipalName) # optional (free format text) 
   }
   #send result back  
   Write-Information -Tags "Audit" -MessageData $log
